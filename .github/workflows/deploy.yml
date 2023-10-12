@@ -63,34 +63,40 @@ jobs:
       - run: npm run build-api
       - run: npm run build-data-updates
 
-      - name: Create Pull Request using GitHub Script
+      - name: Prepare README update and branch
         if: github.event_name == 'pull_request'
+        run: |
+          npm run build-readme
+          git config --global user.name "${GITHUB_ACTOR}"
+          git config --global user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+          if ! git diff --quiet README.md; then
+
+            NEW_BRANCH_NAME="update-readme-${GITHUB_SHA}"
+            git checkout -b $NEW_BRANCH_NAME
+
+            git add README.md
+            git commit -m "Update README"
+            git push --set-upstream origin $NEW_BRANCH_NAME
+
+            echo "NEW_BRANCH_NAME=$NEW_BRANCH_NAME" >> $GITHUB_ENV
+          fi
+
+      - name: Create Pull Request using GitHub Script
+        if: env.NEW_BRANCH_NAME
         uses: actions/github-script@v5
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
-            npm run build-readme
-            git config --global user.name "${GITHUB_ACTOR}"
-            git config --global user.email "${GITHUB_ACTOR}@users.noreply.github.com"
-            if ! git diff --quiet README.md; then
+            const pr = {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: 'Update README',
+              head: process.env.NEW_BRANCH_NAME,
+              base: 'main',
+              body: 'Updated README.md'
+            };
+            github.rest.pulls.create(pr);
 
-              NEW_BRANCH_NAME="update-readme-${GITHUB_SHA}"
-              git checkout -b $NEW_BRANCH_NAME
-
-              git add README.md
-              git commit -m "Update README"
-              git push --set-upstream origin $NEW_BRANCH_NAME
-
-              const pr = {
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                title: 'Update README',
-                head: $NEW_BRANCH_NAME,
-                base: 'main',
-                body: 'Updated README.md'
-              };
-              github.rest.pulls.create(pr);
-            fi
 
       - uses: actions/upload-artifact@v3
         if: github.ref == 'refs/heads/main'
