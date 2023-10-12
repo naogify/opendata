@@ -64,6 +64,7 @@ jobs:
       - run: npm run build-data-updates
 
       - name: Prepare README update and branch
+        id: prepare-readme-update
         if: github.event_name == 'pull_request'
         run: |
           npm run build-readme
@@ -79,7 +80,9 @@ jobs:
             git push --set-upstream origin $NEW_BRANCH_NAME
 
             echo "NEW_BRANCH_NAME=$NEW_BRANCH_NAME" >> $GITHUB_ENV
+            exit 0
           fi
+          exit 1
 
       - name: Create Pull Request using GitHub Script
         if: env.NEW_BRANCH_NAME
@@ -96,7 +99,6 @@ jobs:
               body: 'Updated README.md'
             };
             github.rest.pulls.create(pr);
-
 
       - uses: actions/upload-artifact@v3
         if: github.ref == 'refs/heads/main'
