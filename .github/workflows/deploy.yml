@@ -138,7 +138,7 @@ jobs:
             git checkout $GITHUB_HEAD_REF; \
             git add README.md; \
             git commit -m "Update README"; \
-            git push https://${{secrets.GITHUB_TOKEN}}@github.com/${{secrets.GITHUB_REPOSITORY}}.git
+            git push https://${{secrets.GITHUB_TOKEN}}@github.com/${{github.repository}}
           fi
   deploy:
     if: github.ref == 'refs/heads/main'
