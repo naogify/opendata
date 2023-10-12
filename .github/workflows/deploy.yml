@@ -63,43 +63,6 @@ jobs:
       - run: npm run build-api
       - run: npm run build-data-updates
 
-      - name: Prepare README update and branch
-        id: prepare-readme-update
-        if: github.event_name == 'pull_request'
-        run: |
-          npm run build-readme
-          git config --global user.name "${GITHUB_ACTOR}"
-          git config --global user.email "${GITHUB_ACTOR}@users.noreply.github.com"
-          if ! git diff --quiet README.md; then
-
-            NEW_BRANCH_NAME="update-readme-${GITHUB_SHA}"
-            git checkout -b $NEW_BRANCH_NAME
-
-            git add README.md
-            git commit -m "Update README"
-            git push --set-upstream origin $NEW_BRANCH_NAME --force-with-lease
-
-            echo "NEW_BRANCH_NAME=$NEW_BRANCH_NAME" >> $GITHUB_ENV
-            exit 0
-          fi
-          exit 1
-
-      - name: Create Pull Request using GitHub Script
-        if: env.NEW_BRANCH_NAME
-        uses: actions/github-script@v5
-        with:
-          github-token: ${{secrets.GITHUB_TOKEN}}
-          script: |
-            const pr = {
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              title: 'Update README',
-              head: process.env.NEW_BRANCH_NAME,
-              base: 'main',
-              body: 'Updated README.md'
-            };
-            github.rest.pulls.create(pr);
-
       - uses: actions/upload-artifact@v3
         if: github.ref == 'refs/heads/main'
         with:
@@ -152,6 +115,31 @@ jobs:
         GH_TOKEN: ${{ github.token }}
         REPO: "${{ github.repository_owner }}/${{ github.event.repository.name }}"
 
+  push-readme:
+    runs-on: ubuntu-latest
+    if : github.ref == 'refs/heads/main'
+
+    needs:
+      - build
+
+    permissions:
+      contents: write
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v3
+      - run: npm ci
+      - name: Update README
+        run: |
+          npm run build-readme
+          git config --global user.name "${GITHUB_ACTOR}"
+          git config --global user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+          if ! git diff --quiet README.md; then \
+            git checkout $GITHUB_HEAD_REF; \
+            git add README.md; \
+            git commit -m "Update README"; \
+            git push https://${{secrets.GITHUB_TOKEN}}@github.com/${{secrets.GITHUB_REPOSITORY}}.git
+          fi
   deploy:
     if: github.ref == 'refs/heads/main'
 
