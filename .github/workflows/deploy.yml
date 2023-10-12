@@ -77,7 +77,7 @@ jobs:
 
             git add README.md
             git commit -m "Update README"
-            git push --set-upstream origin $NEW_BRANCH_NAME
+            git push --set-upstream origin $NEW_BRANCH_NAME --force-with-lease
 
             echo "NEW_BRANCH_NAME=$NEW_BRANCH_NAME" >> $GITHUB_ENV
             exit 0
