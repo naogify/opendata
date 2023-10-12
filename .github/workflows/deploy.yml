@@ -65,15 +65,22 @@ jobs:
 
       - name: Update README
         if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           npm run build-readme
           git config --global user.name "${GITHUB_ACTOR}"
           git config --global user.email "${GITHUB_ACTOR}@users.noreply.github.com"
-          if ! git diff --quiet README.md; then \
-            git checkout $GITHUB_HEAD_REF; \
-            git add README.md; \
-            git commit -m "Update README"; \
-            git push; \
+          if ! git diff --quiet README.md; then
+
+            NEW_BRANCH_NAME="update-readme-${GITHUB_SHA}"
+            git checkout -b $NEW_BRANCH_NAME
+
+            git add README.md
+            git commit -m "Update README"
+            git push --set-upstream origin $NEW_BRANCH_NAME
+
+            gh pr create --base main --head $NEW_BRANCH_NAME --title "Update README" --body "Updated README.md"
           fi
 
       - uses: actions/upload-artifact@v3
