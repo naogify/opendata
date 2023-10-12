@@ -65,6 +65,8 @@ jobs:
 
       - name: Update README
         if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           npm run build-readme
           git config --global user.name "${GITHUB_ACTOR}"
