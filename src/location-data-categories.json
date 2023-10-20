@@ -21,7 +21,7 @@
   { "category": "other_child_care_support_facility", "name": "その他子育て支援施設", "filename": "0020.xlsx", "description": "" },
   { "category": "infant_childcare_facility", "name": "病児・病後児保育施設", "filename": "0021.xlsx", "description": "" },
   { "category": "regional_child_rearing_support_base", "name": "地域子育て支援拠点", "filename": "0022.xlsx", "description": "" },
-  { "category": "university", "name": "大学bbbb", "filename": "0023.xlsx", "description": "" },
+  { "category": "university", "name": "大学", "filename": "0023.xlsx", "description": "" },
   { "category": "bictcle_rental_port", "name": "レンタサイクルポート", "filename": "0024.xlsx", "description": "" },
   { "category": "municipal_parking", "name": "市立駐車場", "filename": "0025.xlsx", "description": "" },
   { "category": "city_bicycle_parking", "name": "市立駐輪場", "filename": "0026.xlsx", "description": "" },
