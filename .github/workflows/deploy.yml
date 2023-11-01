@@ -89,6 +89,7 @@ jobs:
       - run: npm run build-api
       - run: npm run build-data-updates
 
+      - run: echo $GITHUB_OUTPUT
       - run: echo ${{ needs.prepare.outputs.skip }}
 
       - name: Update README with add-and-commit action
