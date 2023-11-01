@@ -24,12 +24,6 @@ jobs:
       with:
         fetch-depth: 2  # 直前のコミットを取得する為に必要
 
-    - name: Check last commit message
-      id: last_commit
-      run: 
-        echo "message=$(git log --format=%B -n 1 ${{ github.event.before }})" >> $GITHUB_ENV
-        echo $(git log --format=%B -n 1 ${{ github.event.before }})
-
     - name: Check only README.md is changed
       id: files
       run: 
@@ -39,10 +33,9 @@ jobs:
     - name: Determine if job should be skipped
       id: skip_check
       run: |
-        message="${{ env.message }}"
         files="${{ env.list }}"
         echo "skip=false" >> $GITHUB_OUTPUT
-        if [[ "$message" == "Update README By GitHub Actions" && "$files" == "README.md" ]]; then
+        if [[ "$files" == "README.md" ]]; then
           echo "skip=true" >> $GITHUB_OUTPUT
         fi
 
