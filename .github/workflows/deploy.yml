@@ -26,22 +26,24 @@ jobs:
 
     - name: Check last commit message
       id: last_commit
-      run: echo "::set-output name=message::$(git log --format=%B -n 1 ${{ github.event.before }})"
+      run: echo "message=$(git log --format=%B -n 1 ${{ github.event.before }})" >> $GITHUB_ENV
 
     - name: Check only README.md is changed
       id: files
-      run: echo "::set-output name=list::$(git diff --name-only ${{ github.sha }} ${{ github.event.before }})"
+      run: echo "list=$(git diff --name-only ${{ github.sha }} ${{ github.event.before }})" >> $GITHUB_ENV
 
     - name: Determine if job should be skipped
       id: skip_check
       run: |
-        message="${{ steps.last_commit.outputs.message }}"
-        files="${{ steps.files.outputs.list }}"
+        message="${{ env.message }}"
+        files="${{ env.list }}"
+        echo "skip=false" >> $GITHUB_ENV
         if [[ "$message" == "Update README By GitHub Actions" && "$files" == "README.md" ]]; then
-          echo "::set-output name=skip::true"
-        else
-          echo "::set-output name=skip::false"
+          echo "skip=true" >> $GITHUB_ENV
         fi
+        
+    - name: Set output
+      run: echo "skip=${{ env.skip }}" >> $GITHUB_OUTPUT
 
   build:
     runs-on: ubuntu-latest
