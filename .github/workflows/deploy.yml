@@ -26,7 +26,7 @@ jobs:
 
     - name: Set current datetime as env variable
       run: echo "list=$(git diff --name-only ${{ github.sha }} ${{ github.event.before }})"
-      
+
     - name: Check only README.md is changed
       id: files
       run: echo "list=$(git diff --name-only ${{ github.sha }} ${{ github.event.before }})" >> $GITHUB_ENV
@@ -35,7 +35,6 @@ jobs:
       id: skip_check
       run: |
         files="${{ env.list }}"
-        echo "skip=false" >> $GITHUB_OUTPUT
         if [[ "$files" == "README.md" ]]; then
           echo "skip=true" >> $GITHUB_OUTPUT
         fi
