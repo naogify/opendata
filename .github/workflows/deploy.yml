@@ -85,6 +85,9 @@ jobs:
       - run: npm run build-standard-data
       - run: npm run build-api
       - run: npm run build-data-updates
+
+      - run: echo ${{ needs.prepare.outputs.skip }}
+      - run: echo ${{ github.event_name }}
       
       - name: Update README
         if: needs.prepare.outputs.skip == 'false' && github.event_name == 'pull_request'
@@ -118,6 +121,9 @@ jobs:
     needs: prepare
 
     steps:
+    - run: echo ${{ needs.prepare.outputs.skip }}
+    - run: echo ${{ github.event_name }}
+    
     - name: Checkout main branch into main_branch_content directory
       uses: actions/checkout@v2
       with:
