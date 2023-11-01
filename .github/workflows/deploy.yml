@@ -88,14 +88,18 @@ jobs:
 
       - run: echo ${{ needs.prepare.outputs.skip }}
 
-      - name: Update README with add-and-commit action
-        uses: EndBug/add-and-commit@v7
-        with:
-          message: "Update README By GitHub Actions"
-          add: "./README.md"
-          push: true
-          author_name: "${GITHUB_ACTOR}"
-          author_email: "${GITHUB_ACTOR}@users.noreply.github.com"
+      - name: Update README
+        if: needs.prepare.outputs.skip == 'false' && github.event_name == 'pull_request'
+        run: |
+          npm run build-readme
+          git config --global user.name "${GITHUB_ACTOR}"
+          git config --global user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+          if ! git diff --quiet README.md; then \
+            git checkout $GITHUB_HEAD_REF; \
+            git add README.md; \
+            git commit -m "Update README By GitHub Actions"; \
+            git push; \
+          fi
 
       - uses: actions/upload-artifact@v3
         if: github.ref == 'refs/heads/main'
