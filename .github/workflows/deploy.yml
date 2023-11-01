@@ -88,6 +88,8 @@ jobs:
 
       - run: echo ${{ needs.prepare.outputs.skip }}
       - run: echo ${{ github.event_name }}
+      - run: echo "$(git log --format=%B -n 1 ${{ github.event.before }})"
+      - run: echo "$(git diff --name-only ${{ github.sha }} ${{ github.event.before }})"
       
       - name: Update README
         if: needs.prepare.outputs.skip == 'false' && github.event_name == 'pull_request'
@@ -123,6 +125,8 @@ jobs:
     steps:
     - run: echo ${{ needs.prepare.outputs.skip }}
     - run: echo ${{ github.event_name }}
+    - run: echo "$(git log --format=%B -n 1 ${{ github.event.before }})"
+    - run: echo "$(git diff --name-only ${{ github.sha }} ${{ github.event.before }})"
     
     - name: Checkout main branch into main_branch_content directory
       uses: actions/checkout@v2
