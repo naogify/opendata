@@ -11,11 +11,38 @@ on:
       - reopened
     branches:
       - "*"
-    paths-ignore:
-      - "README.md"
   workflow_dispatch:
 
 jobs:
+
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      skip: ${{ steps.skip_check.outputs.skip }}
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 2  # 直前のコミットを取得する為に必要
+
+    - name: Check last commit message
+      id: last_commit
+      run: echo "::set-output name=message::$(git log --format=%B -n 1 ${{ github.event.before }})"
+
+    - name: Check only README.md is changed
+      id: files
+      run: echo "::set-output name=list::$(git diff --name-only ${{ github.sha }} ${{ github.event.before }})"
+
+    - name: Determine if job should be skipped
+      id: skip_check
+      run: |
+        message="${{ steps.last_commit.outputs.message }}"
+        files="${{ steps.files.outputs.list }}"
+        if [[ "$message" == "Update README By GitHub Actions" && "$files" == "README.md" ]]; then
+          echo "::set-output name=skip::true"
+        else
+          echo "::set-output name=skip::false"
+        fi
+
   build:
     runs-on: ubuntu-latest
 
@@ -24,6 +51,8 @@ jobs:
       id-token: write
       issues: write
       pull-requests: write
+
+    needs: prepare
 
     steps:
       - uses: actions/checkout@v3
@@ -60,9 +89,9 @@ jobs:
 
       - name: Update README with add-and-commit action
         uses: EndBug/add-and-commit@v7
-        if: github.event_name == 'pull_request'
+        if: needs.prepare.outputs.skip == 'false' && github.event_name == 'pull_request'
         with:
-          message: "Update README"
+          message: "Update README By GitHub Actions"
           add: "./README.md"
           push: true
           author_name: "${GITHUB_ACTOR}"
@@ -75,7 +104,7 @@ jobs:
           path: build
 
   comment-diff:
-    if: github.event_name == 'pull_request'
+    if: needs.prepare.outputs.skip == 'false' && github.event_name == 'pull_request'
     runs-on: ubuntu-latest
 
     permissions:
@@ -83,6 +112,8 @@ jobs:
       contents: read
       issues: write
       pull-requests: write
+
+    needs: prepare
 
     steps:
     - name: Checkout main branch into main_branch_content directory
