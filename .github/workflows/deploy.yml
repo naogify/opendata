@@ -85,9 +85,7 @@ jobs:
       - run: npm run build-standard-data
       - run: npm run build-api
       - run: npm run build-data-updates
-
-      - run: echo ${{ needs.prepare.outputs.skip }}
-
+      
       - name: Update README
         if: needs.prepare.outputs.skip == 'false' && github.event_name == 'pull_request'
         run: |
