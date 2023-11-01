@@ -27,6 +27,8 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
+          token: ${{ secrets.GEOLONIA_BOT_PAT_TOKEN }}
+        
       - run: npm ci
       # gitに日本語ファイル名に対応させる。
       - run: git config --global core.quotepath false
@@ -54,30 +56,15 @@ jobs:
       - run: npm run build-api
       - run: npm run build-data-updates
 
-      - name: Update README
+      - name: Update README with add-and-commit action
+        uses: EndBug/add-and-commit@v7
         if: github.event_name == 'pull_request'
-        run: |
-          npm run build-readme
-          echo "Checking for changes in the README.md..."
-          if ! git diff --quiet README.md; then \
-            echo "Changes detected in README.md, checking for last commit message..."
-            LAST_COMMIT_MSG=$(git log -1 --pretty=%B)
-            if [[ "$LAST_COMMIT_MSG" != "Update README" ]]; then \
-              echo "Last commit message was not 'Update README', updating README now..."
-              git config --global user.name "geolonia-bot"
-              git config --global user.email "geolonia-bot@users.noreply.github.com"
-              git checkout $GITHUB_HEAD_REF
-              git add README.md
-              git commit -m "Update README"
-              git push
-            else
-              echo "README update was the last commit, skipping to avoid loop..."
-            fi
-          else
-            echo "No changes in README.md, nothing to update."
-          fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GEOLONIA_BOT_PAT_TOKEN }}
+        with:
+          message: "Update README"
+          add: "./README.md"
+          push: true
+          author_name: "${GITHUB_ACTOR}"
+          author_email: "${GITHUB_ACTOR}@users.noreply.github.com"
 
       - uses: actions/upload-artifact@v3
         if: github.ref == 'refs/heads/main'
