@@ -24,27 +24,28 @@ jobs:
       with:
         fetch-depth: 2  # 直前のコミットを取得する為に必要
 
+    - name: Check last commit message
+      id: last_commit
+      run: echo "message=$(git log --format=%B -n 1 ${{ github.event.before }})" >> $GITHUB_ENV
+
+    - name: Check only README.md is changed
+      id: files
+      run: echo "list=$(git diff --name-only ${{ github.sha }} ${{ github.event.before }})" >> $GITHUB_ENV
+
     - name: Determine if job should be skipped
       id: skip_check
       run: |
-        message="$(git log --format=%B -n 1 ${{ github.event.before }})"
-        files="$(git diff --name-only ${{ github.sha }} ${{ github.event.before }})"
+        message="${{ env.message }}"
+        files="${{ env.list }}"
+        echo "skip=false" >> $GITHUB_ENV
         if [[ "$message" == "Update README By GitHub Actions" && "$files" == "README.md" ]]; then
           echo "skip=true" >> $GITHUB_ENV
-        else
-          echo "skip=false" >> $GITHUB_ENV
         fi
-
-    - name: Set job output
-      id: set_output
-      run: echo "skip=${{ env.skip }}" >> $GITHUB_ENV
-      # このステップで環境変数を使ってジョブのアウトプットを設定する
-
+    
     - run: echo ${{ env.skip }}
 
-    - name: Echo job output for demonstration
-      run: echo "The value of skip is ${{ steps.set_output.outputs.skip }}"
-      # 実演のためにアウトプットの値を出力する
+    - name: Set output
+      run: echo "skip=${{ env.skip }}" >> $GITHUB_OUTPUT
 
   build:
     runs-on: ubuntu-latest
