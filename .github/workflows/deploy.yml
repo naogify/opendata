@@ -24,9 +24,6 @@ jobs:
       with:
         fetch-depth: 2  # 直前のコミットを取得する為に必要
 
-    - name: Set current datetime as env variable
-      run: echo "list=$(git diff --name-only ${{ github.sha }} ${{ github.event.before }})"
-
     - name: Check only README.md is changed
       id: files
       run: echo "list=$(git diff --name-only ${{ github.sha }} ${{ github.event.before }})" >> $GITHUB_ENV
