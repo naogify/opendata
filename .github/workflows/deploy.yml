@@ -38,6 +38,8 @@ jobs:
         if [[ "$files" == "README.md" ]]; then
           echo "skip=true" >> $GITHUB_OUTPUT
         fi
+    - run: echo "$(git diff --name-only ${{ github.sha }} ${{ github.event.before }})"
+    - run: echo ${{ steps.skip_check.outputs.skip }}
 
   build:
     runs-on: ubuntu-latest
