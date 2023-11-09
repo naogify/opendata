@@ -137,7 +137,7 @@ jobs:
       with:
         comment-id: ${{ steps.find-comment.outputs.comment-id }}
         issue-number: ${{ github.event.pull_request.number }}
-        body-path: './current_branch_content/src/comment.txt'
+        body-path: './comment.txt'
         edit-mode: 'replace'
 
   deploy:
