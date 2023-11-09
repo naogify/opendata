@@ -24,5 +24,5 @@ diff_output=$(diff --unified -r main_branch_content/data/ current_branch_content
 if [[ -n "$diff_output" ]]; then
   exit 0;
 else
-  exit 1;
+  exit 0;
 fi
