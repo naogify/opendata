@@ -121,6 +121,9 @@ jobs:
 
     - name: Show execution status
       run: echo ${{ steps.csv_diff_step.outcome }}
+
+    - name: Show exit code
+      run: echo $?
         
     - uses: peter-evans/find-comment@v2
       id: find-comment
