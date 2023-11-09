@@ -15,33 +15,6 @@ on:
 
 jobs:
 
-  prepare:
-    runs-on: ubuntu-latest
-    outputs:
-      skip: ${{ steps.skip_check.outputs.skip }}
-    steps:
-    - uses: actions/checkout@v3
-      with:
-        fetch-depth: 2  # 直前のコミットを取得する為に必要
-        token: ${{ secrets.GEOLONIA_BOT_PAT_TOKEN }}
-
-    - name: Check only README.md is changed
-      id: files
-      run: 
-        echo "list=$(git diff --name-only ${{ github.sha }} ${{ github.event.before }})" >> $GITHUB_ENV
-        echo $(git diff --name-only ${{ github.sha }} ${{ github.event.before }})
-
-    - name: Determine if job should be skipped
-      id: skip_check
-      run: |
-        files="${{ env.list }}"
-        echo "skip=false" >> $GITHUB_OUTPUT
-        if [[ "$files" == "README.md" ]]; then
-          echo "skip=true" >> $GITHUB_OUTPUT
-        fi
-    - run: echo "$(git diff --name-only ${{ github.sha }} ${{ github.event.before }})"
-    - run: echo ${{ steps.skip_check.outputs.skip }}
-
   build:
     runs-on: ubuntu-latest
 
@@ -50,8 +23,6 @@ jobs:
       id-token: write
       issues: write
       pull-requests: write
-
-    needs: prepare
 
     steps:
       - uses: actions/checkout@v3
@@ -92,7 +63,7 @@ jobs:
       - run: echo "$(git diff --name-only ${{ github.sha }} ${{ github.event.before }})"
       
       - name: Update README
-        if: needs.prepare.outputs.skip == 'false' && github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request'
         run: |
           npm run build-readme
           git config --global user.name "${GITHUB_ACTOR}"
@@ -112,7 +83,7 @@ jobs:
           path: build
 
   comment-diff:
-    if: needs.prepare.outputs.skip == 'false' && github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
 
     permissions:
@@ -121,14 +92,7 @@ jobs:
       issues: write
       pull-requests: write
 
-    needs: prepare
-
     steps:
-    - run: echo ${{ needs.prepare.outputs.skip }}
-    - run: echo ${{ github.event_name }}
-    - run: echo "$(git log --format=%B -n 1 ${{ github.event.before }})"
-    - run: echo "$(git diff --name-only ${{ github.sha }} ${{ github.event.before }})"
-    
     - name: Checkout main branch into main_branch_content directory
       uses: actions/checkout@v2
       with:
@@ -161,6 +125,20 @@ jobs:
       env:
         GH_TOKEN: ${{ github.token }}
         REPO: "${{ github.repository_owner }}/${{ github.event.repository.name }}"
+
+    - uses: peter-evans/find-comment@v2
+      id: find-comment
+      with:
+        issue-number: ${{ github.event.pull_request.number }}
+        comment-author: 'github-actions[bot]'
+        body-includes: '今回更新されたデータの CSV 差分は以下の通りです'
+
+    - uses: peter-evans/create-or-update-comment@v3
+      with:
+        comment-id: ${{ steps.find-comment.outputs.comment-id }}
+        issue-number: ${{ github.event.pull_request.number }}
+        body-path: './current_branch_content/src/comment.txt'
+        edit-mode: 'replace'
 
   deploy:
     if: github.ref == 'refs/heads/main'
