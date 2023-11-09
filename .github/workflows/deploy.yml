@@ -119,6 +119,9 @@ jobs:
       run: ./current_branch_content/src/csvdiff.sh
       continue-on-error: true
 
+    - name: Show execution status
+      run: echo ${{ steps.csv_diff_step.outcome }}
+        
     - uses: peter-evans/find-comment@v2
       id: find-comment
       with:
