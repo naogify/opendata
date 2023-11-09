@@ -20,9 +20,7 @@ $(diff --unified -r main_branch_content/data/ current_branch_content/data/)
 __COMMENT1__
 
 if [[ -n "$(diff --unified -r main_branch_content/data/ current_branch_content/data/)" ]]; then
-  echo "成功"
   exit 0
 else
-  echo "失敗"
   exit 1
 fi
